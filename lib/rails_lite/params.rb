@@ -3,8 +3,8 @@ require 'uri'
 class Params
   def initialize(req, route_params)
     @params = {}
-    @params.merge(parse_www_encoded_form(req.query_string)) if req.query_string
-    @params.merge(parse_www_encoded_form(req.body)) if req.body
+    @params.merge!(parse_www_encoded_form(req.query_string)) if req.query_string
+    @params.merge!(parse_www_encoded_form(req.body)) if req.body
   end
 
   def [](key)
@@ -20,14 +20,17 @@ class Params
     parsed_query = URI.decode_www_form(www_encoded_form)
     params = {}
     parsed_query.each do |keyval|
-      if parse_key(keyval[0]).length == 1
-        params[ keyval[0] ] = keyval[1]
-      else
-        parse = parse_key(keyval[0])
-        params[ parse[0] ] ||= {}
-        params[ parse[0] ][ parse[1] ] = keyval[1]
+      parse = parse_key(keyval[0])
+      level = @params
+      parse.each_with_index do |key, index|
+        if (parse.length - 1) == index 
+          level[key] = keyval[1]
+        else
+          level[key] ||= {}
+          level = level[key]
+        end
       end
-    end
+    end  
     params
   end
 

@@ -22,17 +22,17 @@ class ControllerBase
   end
 
   def redirect_to(url)
-    @already_built = true
     session.store_session(@res)
     @res.status = 302
     @res.header["location"] = url
+    @already_built = true
   end
 
   def render_content(body, content_type = "text/text")
-    @already_built = true
     session.store_session(@res)
     @res.body = body
     @res.content_type = content_type 
+    @already_built = true
   end
 
   def render(action_name)
