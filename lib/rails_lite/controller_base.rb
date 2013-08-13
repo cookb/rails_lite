@@ -10,9 +10,11 @@ class ControllerBase
     @already_built = false
     @req = req
     @res = res
+    #@params = Params.new(req, route_params) ??
   end
 
   def session
+    @session ||= Session.new(@req) 
   end
 
   def already_rendered?
@@ -21,19 +23,25 @@ class ControllerBase
 
   def redirect_to(url)
     @already_built = true
+    session.store_session(@res)
     @res.status = 302
     @res.header["location"] = url
   end
 
-  def render_content(body, content_type)
+  def render_content(body, content_type = "text/text")
     @already_built = true
+    session.store_session(@res)
     @res.body = body
     @res.content_type = content_type 
   end
 
-  def render(template_name)
+  def render(action_name)
+    action_string = File.read("./views/#{self.class.to_s.underscore}/#{action_name}.html.erb")
+    template = ERB.new(action_string)
+    template_result = template.result(binding)
+    render_content(template_result)
   end
 
-  def invoke_action(name)
+  def invoke_action(action_name)
   end
 end
